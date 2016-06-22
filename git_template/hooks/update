@@ -1,0 +1,53 @@
+#!/bin/sh
+#
+# An update hook to prevent pushes against a repository using latch and latch-cmd (https://github.com/millenc/latch-cmd)
+# author: Mikel Pintor (millen@gmail.com)
+#
+
+# --- Variables
+LATCH_APP="" # Your AppID
+LATCH_SECRET="" # Your Secret Key
+LATCH_ACCOUNT="" # Your Account ID
+GIT_LATCH_ACCOUNTS="/vagrant/git-latch.accounts" # Path to the accounts file
+GIT_LATCH_SEP=":"
+
+# --- Command line
+refname="$1"
+oldrev="$2"
+newrev="$3"
+
+# --- Safety check
+if [ -z "$GIT_DIR" ]; then
+	echo "Don't run this script from the command line." >&2
+	echo " (if you want, you could supply GIT_DIR then run" >&2
+	echo "  $0 <ref> <oldrev> <newrev>)" >&2
+	exit 1
+fi
+
+if [ -z "$refname" -o -z "$oldrev" -o -z "$newrev" ]; then
+	echo "Usage: $0 <ref> <oldrev> <newrev>" >&2
+	exit 1
+fi
+
+# --- Get the current repository directory
+repo_dir="$( pwd )"
+
+# --- Get the current branch
+branch=`echo $refname | grep -oP "^refs/heads/\K\w+" | head -1`
+
+# --- Get the operation ID for this repository and branch
+operation=`grep -oP "^$repo_dir$GIT_LATCH_SEP$branch$GIT_LATCH_SEP\K\w+" $GIT_LATCH_ACCOUNTS | head -1`
+
+if [ -n "$operation" ]
+then
+	# --- Check Latch status for this repository and branch
+	# --- If the status is off (latch is on) exit with a non-zero value to prevent the push from happening
+	status=`latch-cmd app operation status --app="$LATCH_APP" --secret="$LATCH_SECRET" --account="$LATCH_ACCOUNT" --operation="$operation" --bare`
+	if [ $status = "off" ]; then
+		echo "This repository/branch is protected by Latch and is not currently accepting new pushes. Please try again later or contact the repository's administrator."
+		exit 1
+	fi
+fi
+
+# --- Finished
+exit 0

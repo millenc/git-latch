@@ -1,0 +1,10 @@
+# Add your repos/branches and their corresponding operation IDs using the following syntax (don't include the #):
+#
+# repository_folder:branch:operation_id
+#
+# For example, if you have a repository located on the '/srv/git/my_repo' folder
+# with branches 'master' (with Operation ID QJ8WFHsFcz8enMzBvyuP) and 'dev' (gHu3bpuyqLWPCQv8jB34)
+# you would have to add the following 2 lines:
+#
+# /srv/git/my_repo:master:QJ8WFHsFcz8enMzBvyuP
+# /srv/git/my_repo:dev:gHu3bpuyqLWPCQv8jB34
